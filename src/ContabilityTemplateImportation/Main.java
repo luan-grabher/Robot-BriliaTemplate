@@ -156,8 +156,9 @@ public class Main {
         if (compararConfig != null) {
             execs.put("Procurando arquivo " + compararConfig.get("filtroArquivo"), controle.new defineArquivoNaImportacao((String) compararConfig.get("filtroArquivo"), importation));
         }
-
-        execs.put("Criando template " + templateConfig.get("nome"), controle.new converterArquivoParaTemplate(importation, importationC));
+        
+        Model model = new Model();
+        execs.put("Criando template " + templateConfig.get("nome"), model.new converterArquivoParaTemplate(importation, mes, ano));
 
         return AppRobo.rodarExecutaveis(nomeApp, execs);
     }
