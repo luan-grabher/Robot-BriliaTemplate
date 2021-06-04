@@ -1,13 +1,9 @@
 package ContabilityTemplateImportation;
 
-import Dates.Dates;
 import Entity.Executavel;
 import JExcel.XLSX;
-import TemplateContabil.Control.ControleTemplates;
 import TemplateContabil.Model.Entity.Importation;
 import TemplateContabil.Model.ImportationModel;
-import com.aspose.pdf.Document;
-import com.aspose.pdf.ExcelSaveOptions;
 import fileManager.FileManager;
 import java.io.File;
 import java.math.BigDecimal;
@@ -37,33 +33,34 @@ public class Model {
             //Cria Configuração
             Map<String, Map<String, String>> cfgCols = new HashMap<>();
             cfgCols.put("data", XLSX.convertStringToConfig("data", "-collumn¬A¬-type¬string¬-required¬true¬-regex¬[0-9]{2} *\\/ *[a-zA-z]{3}"));
-            cfgCols.put("hist", XLSX.convertStringToConfig("hist", "-collumn¬B¬-type¬string"));
-            cfgCols.put("agencia", XLSX.convertStringToConfig("agencia", "-collumn¬D¬-type¬string"));
-            cfgCols.put("valor", XLSX.convertStringToConfig("valor", "-collumn¬E¬-type¬value"));
+            cfgCols.put("hist", XLSX.convertStringToConfig("hist", "-collumn¬B¬-type¬string¬-required¬true"));
+            cfgCols.put("agencia", XLSX.convertStringToConfig("agencia", "-collumn¬C¬-type¬string"));
+            cfgCols.put("valor", XLSX.convertStringToConfig("valor", "-collumn¬D§E¬-type¬string¬-required¬true"));
 
             //Pega os dados do Excel
             List<Map<String, Object>> rows = XLSX.get(file, cfgCols);
 
-            String complemento = "";
             StringBuilder csvtext = new StringBuilder("#data;historico;valor");
 
             //Percorre Excel
             for (Map<String, Object> row : rows) {
-                //Arruma data deixando apenas o dia
-                String data = row.get("data").toString().replaceAll("[^0-9]*", "");
-                data += "/" + mes + "/" + ano;
+                if (!row.get("hist").toString().contains("SALDO")) {
+                    //Arruma data deixando apenas o dia
+                    String data = row.get("data").toString().replaceAll("[^0-9]*", "");
+                    data += "/" + mes + "/" + ano;
 
-                csvtext.append("\r\n");
-                csvtext.append(data).append(";");
-                
-                csvtext.append(row.get("hist").toString());                
-                //Se tiver agencia
-                if (!"".equals(row.getOrDefault("agencia", "").toString())) {
-                    csvtext.append("Agencia Origem: ").append(row.get("agencia").toString());
+                    csvtext.append("\r\n");
+                    csvtext.append(data).append(";");
+
+                    csvtext.append(row.get("hist").toString());
+                    //Se tiver agencia
+                    if (row.containsKey("agencia") && row.get("agencia") != null) {
+                        csvtext.append(" Agencia Origem: ").append(row.get("agencia").toString());
+                    }
+                    csvtext.append(";");                   
+
+                    csvtext.append(row.get("valor").toString().trim());
                 }
-                csvtext.append(";");
-
-                csvtext.append(((BigDecimal) row.get("valor")).toPlainString());
             }
 
             //Salva arquivo como CSV
